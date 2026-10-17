@@ -1,13 +1,17 @@
 # 把插件同步到 otools 主仓库的 plugins/<packid> 目录（本地试跑用）。
-# 用法：pwsh -File scripts/deploy-to-otools.ps1 [-OtoolsRoot "D:\Repos\xyito\otools\otools"]
+# 用法：pwsh -File scripts/deploy-to-otools.ps1 -OtoolsRoot <OTools 主仓库路径>
+#   也可设环境变量 OTOOLS_ROOT 代替 -OtoolsRoot 参数。
 #
-# 只同步「宿主真正需要的」：plugin.json / logo / 入口壳（本仓库没有，入口是 dist/index.html）
-# 和构建产物 dist/。upstream/、shell/、scripts/、docs 都留在本仓库，不进插件目录。
+# 只同步「宿主真正需要的」：plugin.json / logo 和构建产物 dist/。
+# upstream/、shell/、scripts/、docs 都留在本仓库，不进插件目录。
 param(
-  [string]$OtoolsRoot = "D:\Repos\xyito\otools\otools"
+  [string]$OtoolsRoot = $env:OTOOLS_ROOT
 )
 
 $ErrorActionPreference = "Stop"
+if (-not $OtoolsRoot) {
+  Write-Error "请用 -OtoolsRoot 指定 OTools 主仓库路径，或设置环境变量 OTOOLS_ROOT。"
+}
 $pluginRoot = Split-Path -Parent $PSScriptRoot
 $manifest = Get-Content (Join-Path $pluginRoot "plugin.json") -Raw | ConvertFrom-Json
 $packid = $manifest.packid
@@ -15,12 +19,12 @@ if (-not $packid) { Write-Error "plugin.json 缺少 packid" }
 $target = Join-Path $OtoolsRoot "plugins\$packid"
 
 if (-not (Test-Path (Join-Path $OtoolsRoot "vendor\otools-plugin-sdk\src\index.ts"))) {
-  Write-Error "未找到 otools 仓库：$OtoolsRoot（可用 -OtoolsRoot 指定其它路径）"
+  Write-Error "未找到 otools 仓库：$OtoolsRoot（-OtoolsRoot / OTOOLS_ROOT 指向 OTools 主仓库根目录）"
 }
 
 New-Item -ItemType Directory -Force -Path $target | Out-Null
 
-# 需要随插件分发的东西：清单、图标、入口与构建产物
+# 需要随插件分发的东西：清单、图标与构建产物
 $ship = @(
   "plugin.json",
   "logo.svg",

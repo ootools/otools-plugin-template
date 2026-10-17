@@ -71,8 +71,8 @@ otools-plugin-template/
 node scripts/build-web.mjs
 # 4) 本地预览
 node scripts/serve-dist.mjs
-# 5) 同步到 otools 仓库本地试跑
-pwsh -File scripts/deploy-to-otools.ps1
+# 5) 同步到 otools 仓库本地试跑（指向你本地的 OTools 主仓库）
+pwsh -File scripts/deploy-to-otools.ps1 -OtoolsRoot /path/to/OTools
 ```
 
 `web/index.html` 已经演示了怎么用宿主桥 `window.otoolsPlugin`：弹宿主文件对话框、读、写真实磁盘文件。
@@ -157,7 +157,8 @@ CI 在 `.github/workflows/`：
 gh repo create ootools/otools-<你的插件> --public \
   --description "..."
 
-# 2) 配市场凭证（pat 模式，从 ps-pro/pat.txt 取 XYCLOUD_PAT）
+# 2) 配市场凭证（pat 模式）：先去 https://otools-api.lingyun.net 登录并生成 PAT，
+#    复制到本地环境变量 XYCLOUD_PAT 后执行：
 echo "$XYCLOUD_PAT" | gh secret set XYCLOUD_PAT --repo ootools/otools-<你的插件>
 
 # 3) 建 release 环境（publish 作业需要；无保护规则即可）
@@ -172,7 +173,8 @@ gh variable set OTOOLS_PUBLISH_MARKET --repo ootools/otools-<你的插件> --bod
 
 ### 本地手动上架（不重跑 CI）
 
-如果只想把已发布的 `vX.Y.Z` Release 提交到市场，可用脚本直接跑（需要 `XYCLOUD_PAT`）：
+如果只想把已发布的 `vX.Y.Z` Release 提交到市场，可用脚本直接跑（`XYCLOUD_PAT`
+先在 https://otools-api.lingyun.net 生成）：
 
 ```bash
 XYCLOUD_PAT=$XYCLOUD_PAT AUTH_MODE=pat \
@@ -217,7 +219,7 @@ PLUGIN_MANIFEST=plugin.json node scripts/publish-market.mjs
 node scripts/build-web.mjs            # release
 node scripts/build-web.mjs --debug    # 带调试符号
 node scripts/serve-dist.mjs           # 本地预览 dist/
-pwsh -File scripts/deploy-to-otools.ps1   # 同步到 otools 主仓库本地试跑
+pwsh -File scripts/deploy-to-otools.ps1 -OtoolsRoot /path/to/OTools   # 同步到 otools 主仓库本地试跑
 ```
 
 也可以本地打包校验一遍，确认能发布：
